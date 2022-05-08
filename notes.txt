@@ -1,0 +1,2 @@
+DNS default port = 53   UDP
+
