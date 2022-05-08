@@ -24,7 +24,7 @@ def main():
         # port bindings
         server_socket.bind((ipv4, port))
         print(f"socket binding:\n\t{server_socket}\n")
-        print(f"starting listen on:\n\t{socket.gethostname()}:{port}")
+        print(f"starting listen on:\n\t{ipv4}:{port}")
         server_socket.listen()
         client_socket, client_ipv4 = server_socket.accept()
         with client_socket:
