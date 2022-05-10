@@ -12,29 +12,38 @@ def send():
 
 
 def main():
-    ipv4 = '127.0.0.1'
+    # listen port and ipv4
+    # ipv4 = '127.0.0.1'
+    ipv4 = ""  # socket.INADDR_ANY  # 0.0.0.0 listen on all interfaces
     port = 53
     dns_records = {
         b'foo.bar.com': b'1.2.3.4'
     }
     
-    # we need a socket object
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
-        print(f"socket created")
-        # port bindings
-        server_socket.bind((ipv4, port))
-        print(f"socket binding:\n\t{server_socket}\n")
-        print(f"starting listen on:\n\t{ipv4}:{port}")
-        server_socket.listen()
-        client_socket, client_ipv4 = server_socket.accept()
-        with client_socket:
-            print(f"connection from \n\t{client_ipv4}")
-            while True:
-                data = client_socket.recv(1024)
-                print(data)
-                if not data:
-                    break
-                client_socket.sendall(dns_records[data])
+    # we need a socket object, using a context manager
+    # AF_INET = ipv4 ONLY!!!
+    # AF_INET6 = ipv6, dual stack, not necessarily ipv6 only
+    # SOCK_STREAM means that it is a TCP socket.
+    # SOCK_DGRAM means that it is a UDP socket.
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+        print(f"attempting to bind socket to local udp port {port}")
+        # port bindings,
+        # bind relates to the ip and port we want set locally, forms composit address.
+        sock.bind((ipv4, port))
+        print(f"socket bound:\n\t{sock}\n")
+        while True:
+            data, client = sock.recvfrom(10240)
+            addr = [each for each in data.split(b'\x00') if (each != b'')]
+            print(f"{client}\nbytes: {data}\n"
+                  f"hex:{data.hex()}\n"
+                  # f"{addr!r}\n"
+                  # f"{addr}"
+                  )
+            
+            print(f"query: {str(addr[2], 'UTF-8')}")
+            if not data:
+                break
+            # sock.sendall(dns_records[data])
 
 
 if __name__ == '__main__':
