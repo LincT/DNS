@@ -100,6 +100,7 @@ def main():
     # TODO wire in rdmbs or other config that can be updated without server restarts
     dns_records = {
         'foo.bar.com': '1.2.3.4',
+        'foobar.thornmire.com': '129.5.238.7',
         'a.test.thornmire.com': '1.2.3.4',
         'b.test.thornmire.com': '5.6.7.8',
         'test.thornmire.com': '159.223.128.28'
