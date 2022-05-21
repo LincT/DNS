@@ -1,4 +1,5 @@
 import socket
+import sys
 
 
 def validate_header_size(data: bytes) -> bool:
@@ -88,24 +89,22 @@ def get_name_section(data: bytes, offset: int) -> str:
 
 
 def main():
-    # TODO env based config
     # listen port and ipv4
-    # ipv4 = '127.0.0.1'
     # ipv4 = ""  # socket.INADDR_ANY  # 0.0.0.0 listen on all interfaces
-    ipv4 = "159.223.128.28"  # listen on public addr
+    # env based config, windows is dev machine, anything else assume stage or prod (both linux systems)
+    ipv4 = "" if sys.platform == 'win32' else "159.223.128.28"  # listen on public addr
     port = 53
     # 512 octets or less per rfc1035
     packet_length = 512
 
+    # TODO wire in rdmbs or other config that can be updated without server restarts
     dns_records = {
         'foo.bar.com': '1.2.3.4',
-        'fuck.you.com': '129.5.238.7',
-        'a.test.thornmire.com':'1.2.3.4',
-        'b.test.thornmire.com':'5.6.7.8',
-        'test.thornmire.com':'159.223.128.28'
+        'a.test.thornmire.com': '1.2.3.4',
+        'b.test.thornmire.com': '5.6.7.8',
+        'test.thornmire.com': '159.223.128.28'
     }
 
-    
     # we need a socket object, using a context manager
     # AF_INET = ipv4 ONLY!!!
     # AF_INET6 = ipv6, dual stack, not necessarily ipv6 only
@@ -118,9 +117,6 @@ def main():
         sock.bind((ipv4, port))
         print(f"socket bound:\n\t{sock}\n")
         while True:
-            # "https://stackoverflow.com/a/16981944/15528476" \
-            # "using struct
-            # https://linuxtut.com/en/d0026bc47559320039f2/"
             data, client = sock.recvfrom(packet_length)
             if not validate_header_size(data):
                 print("ignoring packet as too small")
@@ -143,8 +139,7 @@ def main():
                 dns_lookup = dns_records.get(query[0], None)
                 print(f"dns_result: {dns_lookup}")
                 if dns_lookup:
-                    # send packet back
-                    # sock.sendto(b'127.0.0.1', (client, get_transaction_id(data)))
+                    
                     data = bytearray(data)  # copy into writeable buffer
                     # update original data
                     data[2] |= 0x80  # flip first bit from 0 (q) to 1 (r)
